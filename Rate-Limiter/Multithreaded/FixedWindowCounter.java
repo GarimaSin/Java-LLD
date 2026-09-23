@@ -1,16 +1,15 @@
 
-public class FixedWindowRateLimiter {
-	
+public class FixedWindowCounter {
+
 	private final int maxRequests;
-    private final long windowMillis;
+    private final long windowSizeMillis;
 
     private long windowStart;
     private int requestCount;
 
-    public FixedWindowRateLimiter(int maxRequests, long windowMillis) {
-        this.maxRequests = maxRequests;			// how many requests are allowed
-        this.windowMillis = windowMillis;		// how long one time window lasts
-
+    public FixedWindowCounter(int maxRequests, long windowSizeMillis) {
+        this.maxRequests = maxRequests;
+        this.windowSizeMillis = windowSizeMillis;
         this.windowStart = System.currentTimeMillis();
         this.requestCount = 0;
     }
@@ -18,11 +17,13 @@ public class FixedWindowRateLimiter {
     public synchronized boolean allowRequest() {
         long now = System.currentTimeMillis();
 
-        if (now - windowStart >= windowMillis) {
+        // Start a new window
+        if (now - windowStart >= windowSizeMillis) {
             windowStart = now;
             requestCount = 0;
         }
 
+        // Check limit
         if (requestCount >= maxRequests) {
             return false;
         }
@@ -32,8 +33,8 @@ public class FixedWindowRateLimiter {
     }
 
     public static void main(String[] args) {
-        FixedWindowRateLimiter limiter =
-                new FixedWindowRateLimiter(5, 10_000);
+        FixedWindowCounter limiter =
+                new FixedWindowCounter(5, 1000); // 5 requests / second
 
         for (int i = 1; i <= 10; i++) {
             System.out.println(
@@ -41,5 +42,4 @@ public class FixedWindowRateLimiter {
             );
         }
     }
-
 }
