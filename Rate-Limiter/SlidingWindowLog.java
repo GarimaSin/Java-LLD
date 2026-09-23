@@ -4,38 +4,38 @@ import java.util.Deque;
 public class SlidingWindowLog {
 
 	private final int maxRequests;
-	private final long windowMillis;
-	private final Deque<Long> requestLog = new ArrayDeque<>();
+    private final long windowMillis;
 
-	public SlidingWindowLog(int maxRequests, long windowMillis) {
-		this.maxRequests = maxRequests;
-		this.windowMillis = windowMillis;
-	}
+    private final Deque<Long> requestLog = new ArrayDeque<>();
 
-	public synchronized boolean allowRequest() {
-		long now = System.currentTimeMillis();
+    public SlidingWindowLog(int maxRequests, long windowMillis) {
+        this.maxRequests = maxRequests;
+        this.windowMillis = windowMillis;
+    }
 
-		long windowStart = now - windowMillis;
+    public synchronized boolean allowRequest() {
+        long now = System.currentTimeMillis();
+        long windowStart = now - windowMillis;
 
-		// Remove requests that are outside the current window
-		while (!requestLog.isEmpty()
-				&& requestLog.peekFirst() <= windowStart) {
-			requestLog.pollFirst();
-		}
+        while (!requestLog.isEmpty() && requestLog.peekFirst() <= windowStart) {
+            requestLog.pollFirst();
+        }
 
-		// Limit already reached
-		if (requestLog.size() >= maxRequests) {
-			return false;
-		}
+        if (requestLog.size() >= maxRequests) {
+            return false;
+        }
 
-		// Accept and record request
-		requestLog.offerLast(now);
+        requestLog.offerLast(now);
+        return true;
+    }
 
-		return true;
-	}
-	
-	public static void main(String[] args) {
-		SlidingWindowLogRateLimiter limiter =
-		        new SlidingWindowLogRateLimiter(5, 10_000);
-	}
+    public static void main(String[] args) {
+        SlidingWindowLog limiter = new SlidingWindowLog(5, 10_000);
+
+        for (int i = 1; i <= 10; i++) {
+            System.out.println(
+                    "Request " + i + ": " + limiter.allowRequest()
+            );
+        }
+    }
 }

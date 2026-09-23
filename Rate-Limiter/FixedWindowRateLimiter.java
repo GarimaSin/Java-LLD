@@ -18,22 +18,28 @@ public class FixedWindowRateLimiter {
     public synchronized boolean allowRequest() {
         long now = System.currentTimeMillis();
 
-        // Current fixed window has expired
         if (now - windowStart >= windowMillis) {
             windowStart = now;
             requestCount = 0;
         }
 
-        if (requestCount >= maxRequests) 
+        if (requestCount >= maxRequests) {
             return false;
+        }
 
         requestCount++;
         return true;
     }
 
-	public static void main(String[] args) {
-		FixedWindowRateLimiter limiter =
-		        new FixedWindowRateLimiter(5, 10_000);
-	}
+    public static void main(String[] args) {
+        FixedWindowRateLimiter limiter =
+                new FixedWindowRateLimiter(5, 10_000);
+
+        for (int i = 1; i <= 10; i++) {
+            System.out.println(
+                    "Request " + i + ": " + limiter.allowRequest()
+            );
+        }
+    }
 
 }
